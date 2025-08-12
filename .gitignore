@@ -1,0 +1,39 @@
+@
+# Logs
+logs
+.log
+npm-debug.log
+yarn-debug.log
+pnpm-debug.log
+lerna-debug.log
+
+# Packages  builds
+node_modules
+dist
+dist-ssr
+build
+.local
+
+# Envsecrets
+.env
+.env.
+
+# Coverage  test outputs
+coverage
+.nyc_output
+mocha-results.json
+coverage-final.json
+coverage-summary.json
+lcov.info
+
+# EditorOS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+.suo
+.ntvs
+.njsproj
+.sln
+.sw
+@  Set-Content -Encoding UTF8 .gitignore
