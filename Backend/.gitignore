@@ -5,4 +5,5 @@ coverage/
 mocha-results.json
 .env
 .env.*
+*.log
 "@ | Set-Content -Encoding UTF8 Backend\.gitignore
