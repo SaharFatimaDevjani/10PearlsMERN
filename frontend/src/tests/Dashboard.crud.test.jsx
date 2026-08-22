@@ -1,4 +1,7 @@
 // frontend/src/tests/Dashboard.crud.test.jsx
+// Renders <Dashboard/> with axios mocked (no real backend) and drives the
+// full create -> edit -> delete flow through the UI, asserting the correct
+// axios calls are made and the note list updates on screen after each step.
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

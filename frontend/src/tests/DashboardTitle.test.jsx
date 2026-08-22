@@ -1,3 +1,6 @@
+// frontend/src/tests/DashboardTitle.test.jsx
+// Focused test: just checks the Dashboard header greets the user by name
+// once the mocked /api/auth/me call resolves.
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../Pages/Dashboard';

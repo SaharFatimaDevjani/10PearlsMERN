@@ -1,4 +1,11 @@
 // frontend/src/Pages/Dashboard.jsx
+// The main notes screen: shows the current user's notes, and lets them
+// create, edit, delete, search, export (download JSON), and import
+// (upload JSON) notes. Rich text is edited with react-simple-wysiwyg and
+// rendered back with dangerouslySetInnerHTML (safe here because the backend
+// sanitizes all note HTML before saving it — see cleanHtml() in
+// Backend/Controllers/noteController.js).
+
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -9,10 +16,11 @@ import Editor from "react-simple-wysiwyg";
 export default function Dashboard() {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
+  // Which note (by id) is currently being edited inline; null = none.
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNote, setEditingNote] = useState({ title: "", content: "" });
 
-  const [me, setMe] = useState(null);
+  const [me, setMe] = useState(null); // current user's profile, used for the header greeting
   const [loadingMe, setLoadingMe] = useState(true);
 
   // NEW: search term
@@ -20,6 +28,9 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  // Memoized so the auth header object identity is stable across renders
+  // (it's a dependency of the effects below, and re-creating it every
+  // render would otherwise re-trigger them needlessly).
   const authHeader = useMemo(() => ({ Authorization: token }), [token]);
 
   // Fetch profile for header
@@ -31,6 +42,7 @@ export default function Dashboard() {
         });
         setMe(data);
       } catch {
+        // Token missing/expired -> force a fresh login.
         toast.error("Session expired, please login again.");
         localStorage.removeItem("token");
         navigate("/login");
@@ -54,25 +66,30 @@ export default function Dashboard() {
     }
   };
 
+  // Re-fetch notes whenever the search box (`q`) changes, including on
+  // first mount (q starts as "").
   useEffect(() => {
     fetchNotes(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
+  // Creates a note from the "Create a Note" form at the top of the page.
   const handleCreate = async () => {
     if (!newNote.title.trim()) return toast.error("Title is required");
     try {
       await axios.post("http://localhost:5000/api/notes", newNote, {
         headers: authHeader,
       });
-      setNewNote({ title: "", content: "" });
+      setNewNote({ title: "", content: "" }); // clear the form
       toast.success("Note created");
-      fetchNotes(q);
+      fetchNotes(q); // refresh the list so the new note appears
     } catch {
       toast.error("Failed to create note");
     }
   };
 
+  // Switches a note card into "edit" mode, seeding the edit form with its
+  // current title/content.
   const startEdit = (n) => {
     setEditingNoteId(n._id);
     setEditingNote({ title: n.title, content: n.content });
@@ -83,6 +100,7 @@ export default function Dashboard() {
     setEditingNote({ title: "", content: "" });
   };
 
+  // Persists the edited note and exits edit mode.
   const saveEdit = async (id) => {
     if (!editingNote.title.trim()) return toast.error("Title is required");
     try {
@@ -97,6 +115,7 @@ export default function Dashboard() {
     }
   };
 
+  // Asks for confirmation via a SweetAlert2 dialog before deleting.
   const confirmDelete = async (id) => {
     const res = await Swal.fire({
       title: "Delete this note?",
@@ -119,6 +138,10 @@ export default function Dashboard() {
   };
 
   // NEW: Export notes (download JSON)
+  // Builds the JSON client-side from the notes already loaded in state and
+  // triggers a browser download via a throwaway <a download> link. (The
+  // backend also exposes GET /api/notes/export/json for the same data if a
+  // server-generated file is ever needed instead.)
   const exportNotes = () => {
     const blob = new Blob([JSON.stringify(notes, null, 2)], {
       type: "application/json",
@@ -130,10 +153,12 @@ export default function Dashboard() {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url); // free the blob URL now that the download started
   };
 
   // NEW: Import notes (upload JSON)
+  // Reads the chosen file as text, parses it as a JSON array of
+  // {title, content} objects, and bulk-imports them via the backend.
   const importNotes = async (file) => {
     try {
       const text = await file.text();
@@ -162,7 +187,7 @@ export default function Dashboard() {
         </h1>
 
         <div className="flex gap-2">
-          {/* NEW: search box */}
+          {/* NEW: search box — updates `q`, which the effect above turns into a re-fetch */}
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -178,7 +203,8 @@ export default function Dashboard() {
             Export
           </button>
 
-          {/* NEW: import button */}
+          {/* NEW: import button — a styled <label> wraps a hidden file input
+              so the native file picker looks like the other buttons */}
           <label className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded cursor-pointer">
             Import
             <input
@@ -217,6 +243,7 @@ export default function Dashboard() {
         {notes.map((n) => (
           <div key={n._id} className="bg-white rounded-lg shadow p-4">
             {editingNoteId === n._id ? (
+              // Edit mode: show inputs bound to `editingNote` instead of the read-only view.
               <>
                 <input
                   value={editingNote.title}
@@ -248,6 +275,7 @@ export default function Dashboard() {
                 </div>
               </>
             ) : (
+              // Read-only view: render the sanitized HTML content directly.
               <>
                 <h3 className="font-semibold text-lg">{n.title}</h3>
                 <div

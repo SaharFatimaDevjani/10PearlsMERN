@@ -1,10 +1,15 @@
 // src/Pages/Signup.jsx
+// Registration form. Collects the new user's details, confirms the password
+// client-side, then registers via the backend and auto-logs the user in
+// (the register endpoint returns a token just like login does).
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 export default function Signup() {
+  // A single object holds all form fields so one handleChange can update any of them.
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -18,11 +23,15 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Generic input handler: uses each <input>'s `name` attribute as the key
+  // to update, so we don't need a separate handler per field.
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Client-side confirm check (the backend only validates the actual
+    // `password` field, not confirmPassword).
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;

@@ -1,3 +1,8 @@
+// frontend/src/Pages/ProfilePage.jsx
+// Lets the logged-in user view/edit their name+username and change their
+// password. Two independent forms on one page, each with its own
+// loading/saving state and its own API call.
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -6,24 +11,28 @@ import toast from "react-hot-toast";
 export default function ProfilePage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  // Sent as-is (no "Bearer " prefix) — authMiddleware.js on the backend
+  // accepts both a raw token and a "Bearer <token>" header.
   const authHeader = { Authorization: token };
 
   // Profile form
   const [form, setForm] = useState({ firstName: "", lastName: "", username: "" });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true); // true while fetching the current profile
+  const [saving, setSaving] = useState(false);  // true while the "Save Profile" request is in flight
 
   // Password form
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Eye toggles
+  // Eye toggles (show/hide each password field independently)
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [changingPass, setChangingPass] = useState(false);
+  const [changingPass, setChangingPass] = useState(false); // true while "Update Password" request is in flight
 
+  // On mount: bounce to /login if there's no token, otherwise fetch the
+  // current profile to pre-fill the form.
   useEffect(() => {
     if (!token) return navigate("/login");
     (async () => {
@@ -41,6 +50,8 @@ export default function ProfilePage() {
         localStorage.setItem("lastName", data.lastName || "");
         localStorage.setItem("username", data.username || "");
       } catch (e) {
+        // A 401 here almost always means the JWT expired/is invalid, so we
+        // clear everything and send the user back to log in again.
         toast.error("Session expired. Please log in again.");
         localStorage.clear();
         navigate("/login");
@@ -50,6 +61,7 @@ export default function ProfilePage() {
     })();
   }, [token, navigate]);
 
+  // Sends the updated name/username to the backend.
   const saveProfile = async () => {
     if (!form.firstName.trim() || !form.lastName.trim()) {
       toast.error("Please enter first and last name");
@@ -78,6 +90,7 @@ export default function ProfilePage() {
     }
   };
 
+  // Verifies the old password (server-side) and sets a new one.
   const changePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
       toast.error("Please fill all password fields");
@@ -95,6 +108,7 @@ export default function ProfilePage() {
         { headers: authHeader }
       );
       toast.success(data?.message || "Password updated");
+      // Clear the password fields (and hide them again) after a successful change.
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -108,6 +122,7 @@ export default function ProfilePage() {
     }
   };
 
+  // Show a loading placeholder until the initial profile fetch resolves.
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-pink-100 to-purple-100">
