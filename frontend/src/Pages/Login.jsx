@@ -1,3 +1,8 @@
+// frontend/src/Pages/Login.jsx
+// Login form: posts username/password to the backend, then stores the
+// returned JWT + basic profile info in localStorage so other pages
+// (Dashboard, ProfilePage, ProtectedRoute) can read them.
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -6,17 +11,20 @@ import toast from "react-hot-toast";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
+  const [showPass, setShowPass] = useState(false); // toggles the password "eye" icon
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // stop the browser's default full-page form submit
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         username,
         password,
       });
 
+      // Persist the session. localStorage survives page reloads/new tabs
+      // (unlike component state), which is what lets ProtectedRoute and the
+      // other pages know the user is logged in.
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("username", res.data.username || "");
       localStorage.setItem("firstName", res.data.firstName || "");
@@ -26,6 +34,8 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
+      // Show the backend's validation/auth error message when available,
+      // otherwise fall back to a generic one.
       toast.error(err.response?.data?.message || "Login failed");
     }
   };
@@ -57,6 +67,7 @@ export default function Login() {
             className="w-full border border-gray-300 rounded px-4 py-2 pr-10"
             required
           />
+          {/* Click the eye icon to reveal/hide the typed password */}
           <span
             onClick={() => setShowPass(!showPass)}
             className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-600 select-none"

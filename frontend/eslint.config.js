@@ -1,3 +1,6 @@
+// frontend/eslint.config.js
+// ESLint "flat config" — lints .js/.jsx files with the recommended JS rules
+// plus React Hooks and React Fast Refresh rules. Run with `npm run lint`.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

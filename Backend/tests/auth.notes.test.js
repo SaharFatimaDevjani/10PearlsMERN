@@ -1,4 +1,8 @@
 // Backend/tests/auth.notes.test.js
+// End-to-end (supertest) test of the core auth + notes flow: register -> login
+// -> list (empty) -> create -> list (1) -> update -> delete. Runs against a
+// real Mongo engine provided in-memory by mongodb-memory-server, so no local
+// MongoDB install is needed to run `npm test`.
 const { app, mongoose } = require('../index');
 const request = require('supertest');
 const { MongoMemoryServer } = require('mongodb-memory-server');

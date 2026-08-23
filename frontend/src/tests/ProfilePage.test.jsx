@@ -1,4 +1,6 @@
 // frontend/src/tests/ProfilePage.test.jsx
+// Verifies the profile form pre-fills from the mocked GET /api/auth/me, and
+// that both "Save Profile" and "Update Password" send the expected PUT bodies.
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

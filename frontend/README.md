@@ -1,7 +1,8 @@
-$FRONTEND_README = @"
 # 10PearlsMERN – Frontend (React + Vite)
 
 Single-page app for a notes system with auth, CRUD, search, export/import, and profile.
+
+> For the full project manual (setup for both frontend + backend, user guide, full API reference) see the [root README](../README.md).
 
 ## ✨ Features
 - Login / Signup (JWT in localStorage)
@@ -11,10 +12,10 @@ Single-page app for a notes system with auth, CRUD, search, export/import, and p
 - Jest + Testing Library unit tests
 
 ## 🧱 Tech
-React 18, Vite, React Router, Axios, Jest, @testing-library/react.
+React 19, Vite, React Router, Axios, Tailwind CSS, Jest, @testing-library/react.
 
 ## 📂 Structure
-\`\`\`
+```
 src/
   Pages/
     Dashboard.jsx
@@ -30,52 +31,38 @@ src/
   App.jsx
   main.jsx
   index.css
-\`\`\`
-
-## 🔧 Env (create \`frontend/.env\`)
-\`\`\`env
-VITE_API_BASE_URL=http://localhost:5000
-VITE_APP_TITLE=Notes App
-\`\`\`
-Use with: \`import.meta.env.VITE_API_BASE_URL\`.
+```
 
 ## ▶️ Run
-\`\`\`bash
+The API base URL is currently hardcoded to `http://localhost:5000` in the
+`Pages/*.jsx` files, so just make sure the backend (see `../Backend`) is
+running on port 5000, then:
+```bash
 npm install
 npm run dev       # http://localhost:5173
-\`\`\`
+```
 Prod:
-\`\`\`bash
+```bash
 npm run build
 npm run preview
-\`\`\`
+```
 
 ## 🧪 Tests
-\`\`\`bash
+```bash
 npm test
 npx jest --coverage
-\`\`\`
+```
 
 ## 📤 Export / 📥 Import format
-\`\`\`json
-{ "notes": [ { "title": "Example", "content": "Hello" } ] }
-\`\`\`
+```json
+[ { "title": "Example", "content": "Hello" } ]
+```
 
 ## 🗂 .gitignore (important)
-\`\`\`
+```
 node_modules/
 dist/
 coverage/
-.nyc_output/
 .env
 .env.*
-\`\`\`
-
-## 🧭 Branch/PR flow (frontend)
-- base: \`development\`
-- feature branches:
-  - \`feat/frontend-bootstrap\`
-  - \`feat/frontend-auth\`
-  - \`feat/frontend-dashboard\`
-  - \`feat/frontend-profile\`
-  - \`test/frontend\`
+```

@@ -1,4 +1,6 @@
 // frontend/src/tests/Login.test.jsx
+// Checks the Login form both on the happy path (stores the token from a
+// successful axios.post) and the error path (shows a toast on rejection).
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

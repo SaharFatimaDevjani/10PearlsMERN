@@ -1,4 +1,6 @@
 // Backend/tests/notes.features.test.js
+// Covers the "extra" notes endpoints beyond basic CRUD: text search,
+// JSON export, bulk JSON import, and HTML sanitization on note content.
 const { app, mongoose } = require('../index');
 const request = require('supertest');
 const { MongoMemoryServer } = require('mongodb-memory-server');

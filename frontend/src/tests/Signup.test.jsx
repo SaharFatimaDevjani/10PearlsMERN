@@ -1,4 +1,6 @@
 // frontend/src/tests/Signup.test.jsx
+// Checks the client-side "passwords must match" guard blocks submission,
+// and that a valid form posts the expected payload to /api/auth/register.
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

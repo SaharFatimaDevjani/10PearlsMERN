@@ -1,18 +1,29 @@
+// Backend/Controllers/authController.js
+// Handles user registration/login and profile management (view, update,
+// change password). All routes here are defined in Routes/authRoutes.js.
+
 const User = require('../Models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Falls back to a default only for local/dev convenience — always set a real
+// JWT_SECRET in production via the .env file.
 const JWT_SECRET = process.env.JWT_SECRET || 'yourSuperSecretKey';
 
+// Builds a signed JWT carrying just enough user info to identify the caller.
+// The token is opaque to the client; authMiddleware.js verifies and decodes
+// it on every protected request.
 function signToken(user) {
   return jwt.sign(
     { id: user._id, username: user.username, email: user.email },
     JWT_SECRET,
-    { expiresIn: '1d' }
+    { expiresIn: '1d' } // token is valid for 1 day, then the user must log in again
   );
 }
 
 // POST /api/auth/register
+// Creates a new account. Body fields are already validated by the
+// `validate(registerSchema)` middleware before this runs.
 exports.registerUser = async (req, res) => {
   try {
     const { firstName, lastName, username, email, password } = req.body;
@@ -21,15 +32,19 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
+    // Check username/email uniqueness up front so we can return a clear,
+    // field-specific error instead of a raw MongoDB duplicate-key exception.
     const existingUsername = await User.findOne({ username });
     if (existingUsername) return res.status(400).json({ message: 'Username already exists' });
 
     const existingEmail = await User.findOne({ email });
     if (existingEmail) return res.status(400).json({ message: 'Email already registered' });
 
+    // Never store the plaintext password — hash it with bcrypt (cost factor 10).
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ firstName, lastName, username, email, password: hashed });
 
+    // Log the user straight in after registering (frontend stores this token).
     const token = signToken(user);
 
     req.log?.info({ userId: user._id, username: user.username, email: user.email }, 'User registered');
@@ -55,7 +70,10 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Username/email and password are required' });
     }
 
+    // Look up by whichever identifier was supplied.
     const user = await User.findOne(username ? { username } : { email });
+    // Deliberately use the same generic error message for "no such user" and
+    // "wrong password" below, so we don't leak which usernames/emails exist.
     if (!user) return res.status(400).json({ message: 'Invalid username/email or password' });
 
     const ok = await bcrypt.compare(password, user.password);
@@ -79,8 +97,12 @@ exports.loginUser = async (req, res) => {
 };
 
 // GET /api/auth/me
+// Returns the logged-in user's profile. Requires the `protect` middleware,
+// which sets req.user to the user's id extracted from the JWT.
 exports.getMe = async (req, res) => {
   try {
+    // Only select the fields safe to expose to the client (never the
+    // password hash).
     const user = await User.findById(req.user).select('firstName lastName username email');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -94,6 +116,7 @@ exports.getMe = async (req, res) => {
 };
 
 // PUT /api/auth/me
+// Updates the logged-in user's name/username (not email or password).
 exports.updateMe = async (req, res) => {
   try {
     const { firstName, lastName, username } = req.body;
@@ -101,6 +124,8 @@ exports.updateMe = async (req, res) => {
       return res.status(400).json({ message: 'First name and last name are required' });
     }
 
+    // Username is optional on this endpoint, but if a new one is supplied it
+    // must not collide with a *different* user's username.
     if (username) {
       const existing = await User.findOne({ username });
       if (existing && existing._id.toString() !== req.user) {
@@ -112,8 +137,8 @@ exports.updateMe = async (req, res) => {
     if (username) updates.username = username;
 
     const updated = await User.findByIdAndUpdate(req.user, updates, {
-      new: true,
-      runValidators: true,
+      new: true, // return the document *after* the update
+      runValidators: true, // re-run schema validation (e.g. required fields)
       select: 'firstName lastName username email',
     });
 
@@ -129,6 +154,7 @@ exports.updateMe = async (req, res) => {
 };
 
 // PUT /api/auth/me/password
+// Changes the logged-in user's password after verifying the current one.
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -139,6 +165,7 @@ exports.changePassword = async (req, res) => {
     const user = await User.findById(req.user);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Must prove knowledge of the current password before allowing a change.
     const ok = await bcrypt.compare(oldPassword, user.password);
     if (!ok) return res.status(400).json({ message: 'Old password is incorrect' });
 

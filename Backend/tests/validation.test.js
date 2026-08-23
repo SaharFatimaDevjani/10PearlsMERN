@@ -1,4 +1,6 @@
 // Backend/tests/validation.test.js
+// Confirms the Joi `validate` middleware actually rejects bad input (missing
+// title, malformed register payload) with a 400 and a "Validation failed" body.
 const { app, mongoose } = require('../index');
 const request = require('supertest');
 const { MongoMemoryServer } = require('mongodb-memory-server');
