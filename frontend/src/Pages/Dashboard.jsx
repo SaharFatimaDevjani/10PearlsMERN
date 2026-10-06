@@ -53,6 +53,13 @@ export default function Dashboard() {
     run();
   }, [authHeader, navigate]);
 
+  // Logout: drop the saved token/profile info and go back to the login screen.
+  const handleLogout = () => {
+    localStorage.clear();
+    toast.success("Logged out");
+    navigate("/login");
+  };
+
   // Fetch notes (with optional search q)
   const fetchNotes = async (query = "") => {
     try {
@@ -214,6 +221,13 @@ export default function Dashboard() {
               className="hidden"
             />
           </label>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
       </div>
 

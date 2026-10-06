@@ -136,9 +136,21 @@ export default function ProfilePage() {
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-lg border">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-purple-700">My Profile</h1>
-          <Link to="/dashboard" className="text-sm text-blue-600 underline">
-            ← Back to Dashboard
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="text-sm text-blue-600 underline">
+              ← Back to Dashboard
+            </Link>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                toast.success("Logged out");
+                navigate("/login");
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Basic info */}
