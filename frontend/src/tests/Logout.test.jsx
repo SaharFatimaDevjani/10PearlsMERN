@@ -46,4 +46,13 @@ describe('Logout', () => {
     expect(localStorage.getItem('token')).toBeNull();
     expect(localStorage.getItem('username')).toBeNull();
   });
+
+  it('has a Profile link to /profile', async () => {
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole('link', { name: /profile/i })).toHaveAttribute('href', '/profile');
+  });
 });
