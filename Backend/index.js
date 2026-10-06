@@ -49,6 +49,17 @@ app.use(cors({ origin: 'http://localhost:5173' }));
 // Parse incoming JSON request bodies into req.body.
 app.use(express.json());
 
+// Fail fast with a clear message when MongoDB isn't connected, instead of
+// letting Mongoose buffer the query for 10s and then returning a generic
+// "Server error" (the usual cause: missing Backend/.env or mongod not running).
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState === 1) return next();
+  req.log?.error('Request received but MongoDB is not connected');
+  res.status(503).json({
+    message: 'Database not connected. Check MONGO_URI in Backend/.env and that MongoDB is running.',
+  });
+});
+
 // routes
 // Everything under /api/auth handles registration/login/profile.
 app.use('/api/auth', require('./Routes/authRoutes'));
@@ -72,6 +83,12 @@ app.use((err, req, res, next) => {
 // real Mongo connection or an open port, so we skip this block when
 // NODE_ENV=test (see Backend/tests and the "test" npm script).
 if (process.env.NODE_ENV !== 'test') {
+  if (!process.env.MONGO_URI) {
+    baseLogger.error(
+      'MONGO_URI is not set. Create Backend/.env (see Backend/.env.example) with e.g. MONGO_URI=mongodb://127.0.0.1:27017/notes_dev'
+    );
+  }
+
   mongoose
     .connect(process.env.MONGO_URI)
     .then(() => baseLogger.info('MongoDB connected'))

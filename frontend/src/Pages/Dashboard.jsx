@@ -8,7 +8,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import Editor from "react-simple-wysiwyg";
@@ -52,6 +52,13 @@ export default function Dashboard() {
     };
     run();
   }, [authHeader, navigate]);
+
+  // Logout: drop the saved token/profile info and go back to the login screen.
+  const handleLogout = () => {
+    localStorage.clear();
+    toast.success("Logged out");
+    navigate("/login");
+  };
 
   // Fetch notes (with optional search q)
   const fetchNotes = async (query = "") => {
@@ -214,6 +221,20 @@ export default function Dashboard() {
               className="hidden"
             />
           </label>
+
+          <Link
+            to="/profile"
+            className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded"
+          >
+            Profile
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
       </div>
 
